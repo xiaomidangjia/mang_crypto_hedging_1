@@ -65,7 +65,9 @@ def calculate_price_change(df):
     return price_change
 
 API_URL = 'https://api.bitget.com'
-
+API_SECRET_KEY = '48ba2d9468a9aecf42660aea67a3af70bc42ac8317343098e330e3824fa9d771'
+API_KEY = 'bg_f824be07e12f5c2ff648f6a0eb57833e'
+PASSPHRASE = 'HBLww130130130'
 margein_coin = 'USDT'
 futures_type = 'USDT-FUTURES'
 contract_num = 20
@@ -98,7 +100,7 @@ def truncate(number, decimals):
     return int(number * factor) / factor
 
 def write_txt(content):
-    with open(f"/root/many_crypto_hedging/process_4_result.txt", "a") as file:
+    with open(f"/root/mang_crypto_hedging_1/process_4_result.txt", "a") as file:
         file.write(content)
 
 def get_price(symbol):
@@ -372,7 +374,7 @@ while True:
             deviation_degree = (new_data['price_percent'][len(new_data)-1]-per_mean)/per_std
             
                 
-            ins = pd.DataFrame({'date':date_1,'coin_1_name':coin_1,'coin_2_name':coin_2,'deviation_degree':deviation_degree,'corr_value':corr_value},index=[0])
+            ins = pd.DataFrame({'coin_1_name':coin_1,'coin_2_name':coin_2,'deviation_degree':deviation_degree,'corr_value':corr_value},index=[0])
             #print(ins)
             look_df = pd.concat([look_df,ins])
         look_df = look_df[(look_df.corr_value>0.7)]
@@ -415,8 +417,7 @@ while True:
                     coin_long = None
                     coin_short = None
 
-        data_target = date_period[-1]
-        content_judge = f'根据{data_target}的数据判断{dt.date()}做多币种{coin_long},做空币种{coin_short}' + '\n'
+        content_judge = f'根据{data_end}的数据判断{dt.date()}做多币种{coin_long},做空币种{coin_short}' + '\n'
         write_txt(content_judge)
         
         judge = 0
@@ -491,7 +492,7 @@ while True:
 
             positions = {'position': 'None','coin_long_name':coin_long_usdt,'coin_short_name':coin_short_usdt,'coin_long_num':0,'coin_long_price':0,'coin_long_fee':0,'coin_short_num':0,'coin_short_price':0,'coin_short_fee':0,'close_signal':0,'coin_long_volumePlace':coin_long_volumePlace,'coin_short_volumePlace':coin_short_volumePlace}
 
-            order_value = 500
+            order_value = 1500
             position = positions['position']
             while position in ('run_ing','None'):
                 coin_long_name = positions['coin_long_name']
