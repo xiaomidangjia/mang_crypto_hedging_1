@@ -103,7 +103,9 @@ def calculate_rsi(df):
     df['RSI'] = ta.rsi(df['close_price'], length=14)
     return df
 API_URL = 'https://api.bitget.com'
-
+API_SECRET_KEY = 'ca8d708b774782ce0fd09c78ba5c19e1e421d5fd2a78964359e6eb306cf15c67'
+API_KEY = 'bg_42d96db83714abb3757250cef9ba7752'
+PASSPHRASE = 'HBLww130130130'
 margein_coin = 'USDT'
 futures_type = 'USDT-FUTURES'
 contract_num = 5
@@ -1263,7 +1265,7 @@ while i < length-1:
     #print(look_df)
     i += 1
 
-
+'''
 # 计算数值列的平均值和中位数
 sum_values = look_df.sum(numeric_only=True)
 mean_values = look_df.mean(numeric_only=True)
@@ -1290,12 +1292,12 @@ min_values['Name'] = 'Min'
 
 # 将新行添加到原DataFrame
 look_df = pd.concat([look_df,sum_values.to_frame().T, mean_values.to_frame().T, median_values.to_frame().T, max_values.to_frame().T, min_values.to_frame().T], ignore_index=True)
-
+'''
 table_model_1 = look_df
-test_result.columns = test_result.iloc[0]
+#test_result.columns = test_result.iloc[0]
 
 # 删除第一行
-test_result = test_result[1:].reset_index(drop=True)
+#test_result = test_result[1:].reset_index(drop=True)
 
 # ================================================================================== 第二个模型 =========================================================
 import importlib
@@ -1663,10 +1665,6 @@ for date in date_period:#[pd.to_datetime('2025-01-20'),pd.to_datetime('2025-01-2
         df = pd.DataFrame({'date':date,'coin_long':coin_long,'coin_short':coin_short,'value':value},index=[0])        
     table_model_2 = pd.concat([table_model_2,df])
 
-action_values_model2 = len(table_model_2)
-success_values_model2 = len(table_model_2[table_model_2.value>0])/len(table_model_2)
-return_values_model2 = np.sum(table_model_2['value'])
-
 
 # ============================================================ 模型3 ==========================================================
 import requests
@@ -1971,7 +1969,7 @@ res_dict = {'coin_long':None,'coin_short':None,'res':None}
 res_df = pd.DataFrame()
 
 for ele in date_period:
-    print(res_dict)
+    #print(res_dict)
     ins = look_df[look_df.date==ele]
     ins['rate_abs'] = ins['coin_rate'].apply(lambda x:np.abs(x))
     
@@ -2026,7 +2024,7 @@ for ele in date_period:
     df = pd.DataFrame({'date':date,'coin_long':coin_long,'coin_short':coin_short,'value':value},index=[0])
     res_df = pd.concat([res_df,df])
 res_df = res_df.reset_index(drop=True)
-table_model_3 = res_df.iloc[-30:-1]
+table_model_3 = res_df[-30:]
 action_values_model3 = len(table_model_3)
 success_values_model3 = len(table_model_3[table_model_3.value>0])/len(table_model_3)
 return_values_model3 = np.sum(table_model_3['value'])
@@ -2582,10 +2580,31 @@ for date in date_period:
         look_df = pd.concat([look_df,df])
 look_df = look_df.dropna()
 look_df = look_df.reset_index(drop=True)
-table_model_4 = look_df.iloc[-30:-1]
-action_values_model4 = len(table_model_4)
-success_values_model4 = len(table_model_4[table_model_4.value>0])/len(table_model_4)
-return_values_model4 = np.sum(table_model_4['value'])
+table_model_4 = look_df.iloc[-30:]
+table_model_1.rename(columns={'coin_long':'coin_long_m1','coin_short':'coin_short_m1','value':'value_m1'},inplace=True)
+table_model_2.rename(columns={'coin_long':'coin_long_m2','coin_short':'coin_short_m2','value':'value_m2'},inplace=True)
+table_model_3.rename(columns={'coin_long':'coin_long_m3','coin_short':'coin_short_m3','value':'value_m3'},inplace=True)
+table_model_4.rename(columns={'coin_long':'coin_long_m4','coin_short':'coin_short_m4','value':'value_m4'},inplace=True)
+table_model_1['date'] = table_model_1['date'].apply(lambda x:pd.to_datetime(x))
+table_model_2['date'] = table_model_2['date'].apply(lambda x:pd.to_datetime(x))
+table_model_3['date'] = table_model_3['date'].apply(lambda x:pd.to_datetime(x))
+table_model_4['date'] = table_model_4['date'].apply(lambda x:pd.to_datetime(x))
+new_last_df = table_model_1.merge(table_model_2,how='left',on=['date']).merge(table_model_3,how='left',on=['date']).merge(table_model_4,how='left',on=['date'])
+sub_new_last_df = new_last_df[['date','value_m1','value_m2','value_m3','value_m4']]
+sub_new_last_df = sub_new_last_df.fillna(0)
+sub_new_last_df['value'] = sub_new_last_df.apply(lambda x:(x[1]+x[2]+x[3]+x[4]),axis=1)
+number = len(new_last_df)
+m1_success = len(new_last_df[new_last_df.value_m1>0])/number
+m1_return = np.sum(new_last_df['value_m1'])
+
+m2_success = len(new_last_df[new_last_df.value_m2>0])/number
+m2_return = np.sum(new_last_df['value_m2'])
+
+m3_success = len(new_last_df[new_last_df.value_m3>0])/number
+m3_return = np.sum(new_last_df['value_m3'])
+
+m4_success = len(new_last_df[new_last_df.value_m4>0])/len(new_last_df[new_last_df.value_m4!=0])
+m4_return = np.sum(new_last_df['value_m4'])
 
 #======自动发邮件
 import smtplib
@@ -2593,27 +2612,25 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import pandas as pd
 # 将DataFrame转换为HTML表格
-html_table1 = table_model_2.to_html(index=False)
-html_table2 = table_model_1.to_html(index=False)
-html_table3 = table_model_3.to_html(index=False)
-html_table4 = table_model_4.to_html(index=False)
+html_table1 = new_last_df.to_html(index=False)
+html_table2 = sub_new_last_df.to_html(index=False)
 # 定义HTML内容，包含两个表格
 html_content = f"""
 <html>
   <body>
     <p>您好，</p>
-    <p>以下是第4模型表格，执行次数：{action_values_model4},成功率为：{success_values_model4},总收益为：{return_values_model4}：</p>
-    {html_table4}
-    <br>
-    <p>以下是第3模型表格，执行次数：{action_values_model3},成功率为：{success_values_model3},总收益为：{return_values_model3}：</p>
-    {html_table3}
-    <br>
-    <p>以下是第2模型表格，执行次数：{action_values_model2},成功率为：{success_values_model2},总收益为：{return_values_model2}：</p>
+    <p>以下是明细表：</p>
     {html_table1}
     <br>
-    <p>以下是第1模型表格，执行次数：{action_values},成功率为：{success_values}：</p>
+    <p>以下总表：</p>
     {html_table2}
     <br>
+    <p>总执行天数：{number}：</p>
+    <p>模型1--成功率：{m1_success},总收益为：{m1_return}：</p>
+    <p>模型2--成功率：{m2_success},总收益为：{m2_return}：</p>
+    <p>模型3--成功率：{m3_success},总收益为：{m3_return}：</p>
+    <p>模型4--成功率：{m4_success},总收益为：{m4_return}：</p>
+
     <p>祝好，<br>卡森</p>
   </body>
 </html>

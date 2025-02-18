@@ -259,7 +259,7 @@ def fetch_last_month_klines(symbol, granularity_value,number):
 
     return klines
 
-res_dict = {'coin_long':'sol','coin_short':'ltc','res':-1}
+res_dict = {'coin_long':'eth','coin_short':'btc','res':-1}
 while True:
     time.sleep(1)
     raw_process_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
